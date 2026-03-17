@@ -7,7 +7,6 @@
 //   - buildAnalysisJsonForReview()   [war: batchPipeline.gs + geminiSheets.gs]
 //   - getRowDataByIndex()            [war: batchPipeline.gs + geminiSheets.gs]
 //   - getAllPaperUUIDs()             [war: Claude.gs + workspace_flow_core.gs]
-//   - getDashboardColumnIndex()      [war: events.gs, referenziert aber undefiniert]
 //   - getConfig()                    [war: prompt_automation.gs - undefiniert]
 //   - writeResultsToSheetExtended()  [war: sidebar_backend.gs - undefiniert]
 //   - setCell()                      [war: sidebar_backend.gs - undefiniert]
