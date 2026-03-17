@@ -592,31 +592,6 @@ function getPendingFulltexts() {
   return items;
 }
 
-function applyDashboardFilters(criteria) {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Dashboard");
-  const data = sheet.getDataRange().getValues();
-  const headers = data[0];
-  const idxStatus = headers.indexOf("Status");
-  const idxRel = headers.indexOf("Relevanz");
-  
-  sheet.showRows(1, sheet.getMaxRows());
-  
-  for (let i = 1; i < data.length; i++) {
-    let hide = false;
-    const row = data[i];
-    
-    if (criteria.status && row[idxStatus] !== criteria.status) hide = true;
-    if (!hide && criteria.relevance && row[idxRel] !== criteria.relevance) hide = true;
-    
-    if (hide) sheet.hideRows(i + 1);
-  }
-}
-
-function clearDashboardFilters() {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Dashboard");
-  sheet.showRows(1, sheet.getMaxRows());
-}
-
 function saveManualFulltext(rowIndex, text) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Dashboard");
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
