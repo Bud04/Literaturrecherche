@@ -98,19 +98,6 @@ function getAllPaperUUIDs() {
 }
 
 // ==========================================
-// SPALTEN-INDEX HELPER
-// ==========================================
-
-/**
- * ✅ Gibt den 1-basierten Spaltenindex für einen Header zurück
- * Wird in events.gs referenziert aber war nicht definiert
- */
-function getDashboardColumnIndex(headerName) {
-  const idx = DASHBOARD_HEADERS.indexOf(headerName);
-  return idx >= 0 ? idx + 1 : 0;
-}
-
-// ==========================================
 // CONFIG HELPER
 // ==========================================
 
