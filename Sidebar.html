@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      padding: 0;
+      margin: 0;
+      background-color: #f6f6f6;
+      font-size: 13px;
+    }
+    
+    /* TAB NAVIGATION */
+    .tab-nav {
+      display: flex;
+      background: #1a73e8;
+      margin: 0;
+      padding: 0;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      background: transparent;
+      color: rgba(255,255,255,0.7);
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: 0.2s;
+      border-bottom: 3px solid transparent;
+    }
+    .tab-btn:hover {
+      background: rgba(255,255,255,0.1);
+      color: white;
+    }
+    .tab-btn.active {
+      color: white;
+      background: rgba(255,255,255,0.15);
+      border-bottom: 3px solid #fff;
+    }
+    
+    /* TAB CONTENT */
+    .tab-content {
+      display: none;
+      padding: 12px;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    
+    .card {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+      margin-bottom: 15px;
+    }
+    h4 {
+      margin: 0 0 10px 0;
+      color: #1a73e8;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    textarea {
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 8px;
+      font-family: monospace;
+      font-size: 11px;
+      margin-bottom: 10px;
+      resize: vertical;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-bottom: 8px;
+      transition: 0.2s;
+    }
+    .btn-blue { background: #1a73e8; color: white; }
+    .btn-blue:hover { background: #1557b0; }
+    .btn-green { background: #188038; color: white; }
+    .btn-green:hover { background: #13652c; }
+    .btn-orange { background: #ea8600; color: white; }
+    .btn-orange:hover { background: #c27400; }
+    .btn-purple { background: #7c4dff; color: white; }
+    .btn-purple:hover { background: #651fff; }
+    .btn-light { background: white; border: 1px solid #ddd; color: #333; }
+    .status-info {
+      font-size: 11px;
+      color: #666;
+      margin-bottom: 10px;
+      background: #e8f0fe;
+      padding: 8px;
+      border-radius: 4px;
+      border-left: 3px solid #1a73e8;
+    }
+    #save-msg {
+      font-size: 12px;
+      font-weight: bold;
+      text-align: center;
+      margin-top: 5px;
+    }
+    select {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+      border: 1px solid #1a73e8;
+      border-radius: 4px;
+      color: #1a73e8;
+      font-weight: bold;
+      background: white;
+    }
+    
+    /* TAB 2: FILTER */
+    .filter-group {
+      margin-bottom: 15px;
+    }
+    .filter-group label {
+      display: block;
+      font-size: 11px;
+      font-weight: bold;
+      margin-bottom: 5px;
+      color: #333;
+    }
+    
+    /* TAB 3: BOOSTER */
+    .item-list {
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: white;
+    }
+    .item {
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .item:hover {
+      background: #f0f7ff;
+    }
+    .item:last-child {
+      border-bottom: none;
+    }
+    .item-title {
+      font-weight: bold;
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+    .item-meta {
+      font-size: 10px;
+      color: #666;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 9px;
+      font-weight: bold;
+      margin-right: 5px;
+    }
+    .badge-high { background: #ffeaa7; color: #d63031; }
+    .badge-medium { background: #74b9ff; color: #0984e3; }
+    
+    /* Input Mode Buttons */
+    .mode-btn-active {
+      background: #e8f0fe !important;
+      border-color: #1a73e8 !important;
+    }
+  </style>
+</head>
+<body>
+  <!-- TAB NAVIGATION -->
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab(0)">📝 Workflow</button>
+    <button class="tab-btn" onclick="switchTab(1)">🔍 Filter</button>
+    <button class="tab-btn" onclick="switchTab(2)">⚡ Booster</button>
+  </div>
+
+  <!-- TAB 1: WORKFLOW (ORIGINAL PROMPT SYSTEM) -->
+  <div class="tab-content active" id="tab-workflow">
+    <div class="card">
+      <h4 id="step-title">Lade Workflow...</h4>
+      <div id="row-info" class="status-info">Bitte Zeile im Dashboard wählen.</div>
+      
+      <label style="font-size:11px; font-weight:bold;">AKTUELLER SCHRITT / AUSWAHL:</label>
+      <select id="stepSelector" onchange="changeStep()">
+        <option value="">-- Automatische Erkennung --</option>
+      </select>
+      
+      <label style="font-size:11px; font-weight:bold;">1. PROMPT KOPIEREN</label>
+      <textarea id="promptDisplay" rows="10" readonly placeholder="Prompt erscheint hier..."></textarea>
+      <button class="btn-blue" onclick="copyPrompt()">📋 Prompt für ChatGPT kopieren</button>
+      <button class="btn-light" onclick="loadData()">🔄 Auto-Detect / Refresh</button>
+    </div>
+
+    <div class="card">
+      <label style="font-size:11px; font-weight:bold;">2. KI ANTWORT SPEICHERN</label>
+      <textarea id="jsonInput" rows="10" placeholder="JSON-Antwort von ChatGPT hier einfügen..."></textarea>
+      <button class="btn-green" id="saveBtn" onclick="saveJson()">💾 Speichern & Nächster Schritt</button>
+      <div id="save-msg"></div>
+    </div>
+  </div>
+
+  <!-- TAB 2: DASHBOARD FILTER -->
+  <div class="tab-content" id="tab-filter">
+    <div class="card">
+      <h4>🔍 Dashboard Filter</h4>
+      
+      <div class="filter-group">
+        <label>Nach Status filtern:</label>
+        <select id="filterStatus">
+          <option value="">-- Alle --</option>
+          <option value="Neu">Neu</option>
+          <option value="Analyse ausstehend">Analyse ausstehend</option>
+          <option value="Analyse fertig">Analyse fertig</option>
+          <option value="Abgeschlossen">Abgeschlossen</option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label>Nach Relevanz filtern:</label>
+        <select id="filterRelevance">
+          <option value="">-- Alle --</option>
+          <option value="Sehr hoch">Sehr hoch</option>
+          <option value="Hoch">Hoch</option>
+          <option value="Mittel">Mittel</option>
+          <option value="Niedrig">Niedrig</option>
+        </select>
+      </div>
+      
+      <button class="btn-blue" onclick="applyFilters()">✅ Filter anwenden</button>
+      <button class="btn-light" onclick="clearFilters()">🔄 Alle zeigen</button>
+      
+      <div id="filter-msg" style="margin-top:10px; font-size:11px; color:#666;"></div>
+    </div>
+  </div>
+
+  <!-- TAB 3: VOLLTEXT BOOSTER -->
+  <div class="tab-content" id="tab-booster">
+    <div class="card">
+      <h4>⚡ Volltext-Booster</h4>
+      <p style="font-size:11px; color:#666; margin-bottom:10px;">
+        Relevante Papers ohne Volltext - füge manuell Text/PDF hinzu.
+      </p>
+      
+      <button class="btn-blue" onclick="loadPendingItems()">🔄 Liste aktualisieren</button>
+      
+      <div id="pending-list" class="item-list" style="margin-top:10px;">
+        <div style="padding:20px; text-align:center; color:#999;">
+          Klicke auf "Liste aktualisieren"
+        </div>
+      </div>
+    </div>
+    
+    <div class="card" id="booster-editor" style="display:none;">
+      <h4>📝 Volltext hinzufügen</h4>
+      <div id="booster-title" style="font-weight:bold; margin-bottom:10px; font-size:12px;"></div>
+      
+      <!-- INPUT MODE SELECTOR (4 Modi) -->
+      <div style="display:flex; gap:8px; margin-bottom:15px; flex-wrap:wrap;">
+        <button class="btn-light mode-btn-active" style="flex:1; padding:8px; font-size:10px; min-width:70px;" onclick="switchInputMode('text')" id="btn-text">
+          📝 Text
+        </button>
+        <button class="btn-light" style="flex:1; padding:8px; font-size:10px; min-width:70px;" onclick="switchInputMode('pdf')" id="btn-pdf">
+          📄 PDF
+        </button>
+        <button class="btn-light" style="flex:1; padding:8px; font-size:10px; min-width:70px;" onclick="switchInputMode('smart-pdf')" id="btn-smart-pdf">
+          🧠 Smart
+        </button>
+        <button class="btn-light" style="flex:1; padding:8px; font-size:10px; min-width:70px;" onclick="switchInputMode('image')" id="btn-image">
+          📸 Bilder
+        </button>
+      </div>
+      
+      <!-- TEXT MODE -->
+      <div id="input-text" style="display:block;">
+        <label style="font-size:11px; font-weight:bold;">VOLLTEXT HIER EINFÜGEN:</label>
+        <textarea id="boosterText" rows="12" placeholder="PDF-Text oder Abstract hier einfügen..."></textarea>
+        <button class="btn-green" onclick="saveBoosterText()">💾 Speichern</button>
+      </div>
+      
+      <!-- PDF MODE (BASIC) -->
+      <div id="input-pdf" style="display:none;">
+        <label style="font-size:11px; font-weight:bold;">PDF HOCHLADEN (BASIC):</label>
+        <input type="file" accept=".pdf" id="pdfUpload" style="width:100%; margin-bottom:10px;">
+        <div style="font-size:11px; color:#666; margin-bottom:10px; line-height:1.6;">
+          ✅ Nur Text-Extraktion<br>
+          ❌ Tabellen/Figures gehen verloren<br>
+          ✅ Schnell (10-20 Sek)<br>
+          ✅ Kostenlos & unbegrenzt
+        </div>
+        <button class="btn-green" onclick="saveBoosterPdf()">📄 PDF verarbeiten</button>
+      </div>
+      
+      <!-- SMART PDF MODE (MIT SELECTIVE OCR) -->
+      <div id="input-smart-pdf" style="display:none;">
+        <label style="font-size:11px; font-weight:bold;">PDF HOCHLADEN (SMART OCR):</label>
+        <input type="file" accept=".pdf" id="smartPdfUpload" style="width:100%; margin-bottom:10px;">
+        <div style="font-size:11px; color:#666; margin-bottom:10px; line-height:1.6;">
+          🧠 <strong>Intelligente Verarbeitung:</strong><br>
+          1️⃣ Gemini findet Tabellen/Figures automatisch<br>
+          2️⃣ Nur relevante Seiten → OCR (spart API-Calls!)<br>
+          3️⃣ Text + OCR-Tabellen kombiniert<br>
+          <br>
+          ✅ Tabellen bleiben lesbar<br>
+          ⏱️ Langsamer (30-60 Sek bei vielen Tables)<br>
+          📊 Nutzt OCR.space API (25k/Monat kostenlos)
+        </div>
+        <button class="btn-orange" onclick="saveBoosterSmartPdf()">🧠 Smart PDF verarbeiten</button>
+      </div>
+      
+      <!-- IMAGE MODE (Screenshots mit Gemini Vision) -->
+      <div id="input-image" style="display:none;">
+        <label style="font-size:11px; font-weight:bold;">SCREENSHOTS HOCHLADEN:</label>
+        <input type="file" accept="image/*" id="imageUpload" multiple style="width:100%; margin-bottom:10px;">
+        <div style="font-size:11px; color:#666; margin-bottom:10px; line-height:1.6;">
+          📸 <strong>Screenshot-zu-Text (Gemini Vision):</strong><br>
+          • Für Papers hinter Paywall<br>
+          • Screenshots vom PDF-Viewer<br>
+          • Mehrere Bilder möglich<br>
+          <br>
+          ✅ Tabellen werden erkannt<br>
+          ✅ Auch handschriftliche Notizen<br>
+          ⚠️ Benötigt Gemini API Key
+        </div>
+        <button class="btn-purple" onclick="saveBoosterImages()">📸 Screenshots verarbeiten</button>
+      </div>
+      
+      <button class="btn-light" onclick="cancelBooster()">❌ Abbrechen</button>
+      
+      <div id="booster-msg" style="margin-top:10px; font-size:11px;"></div>
+    </div>
+  </div>
+
+  <script>
+    let currentDetectedSource = "";
+    let currentBoosterRow = null;
+    let currentInputMode = 'text';
+
+    // ==========================================
+    // TAB SWITCHING
+    // ==========================================
+    function switchTab(index) {
+      const tabs = document.querySelectorAll('.tab-content');
+      const btns = document.querySelectorAll('.tab-btn');
+      
+      tabs.forEach((tab, i) => {
+        tab.classList.toggle('active', i === index);
+      });
+      
+      btns.forEach((btn, i) => {
+        btn.classList.toggle('active', i === index);
+      });
+      
+      // Tab-spezifische Initialisierung
+      if (index === 0) loadData();
+      if (index === 2) loadPendingItems();
+    }
+
+    // ==========================================
+    // TAB 1: WORKFLOW (ORIGINAL)
+    // ==========================================
+    window.onload = function() {
+      initStepSelector();
+      loadData();
+    };
+
+    function initStepSelector() {
+      google.script.run.withSuccessHandler(steps => {
+        const sel = document.getElementById('stepSelector');
+        while (sel.options.length > 1) sel.remove(1);
+        steps.forEach(s => {
+          const opt = document.createElement('option');
+          opt.value = s.id;
+          opt.textContent = s.label;
+          sel.appendChild(opt);
+        });
+      }).getAvailableSteps();
+    }
+
+    function loadData(forcedStep) {
+      const msg = document.getElementById('save-msg');
+      msg.innerText = "";
+      document.getElementById('saveBtn').disabled = false;
+      
+      google.script.run.withSuccessHandler(data => {
+        if(data.error) {
+          document.getElementById('row-info').innerText = data.error;
+          document.getElementById('step-title').innerText = "Fehler";
+          return;
+        }
+        
+        document.getElementById('step-title').innerText = data.stepInfo;
+        document.getElementById('row-info').innerText = "Zeile " + data.row + " | Basis: " + data.detectedSource;
+        currentDetectedSource = data.detectedSource;
+        document.getElementById('promptDisplay').value = data.prompt;
+        document.getElementById('jsonInput').value = "";
+        
+        if(data.currentStepId) {
+          document.getElementById('stepSelector').value = data.currentStepId;
+        }
+      }).getSidebarData(forcedStep);
+    }
+
+    function saveJson() {
+      const json = document.getElementById('jsonInput').value;
+      if(!json) { alert("Bitte Antwort einfügen!"); return; }
+      
+      const btn = document.getElementById('saveBtn');
+      const msg = document.getElementById('save-msg');
+      
+      btn.disabled = true;
+      msg.style.color = "#666";
+      msg.innerText = "Speichere Daten...";
+
+      google.script.run.withSuccessHandler(res => {
+        btn.disabled = false;
+        if(res.error) {
+          msg.style.color = "red";
+          msg.innerText = "Fehler!";
+          alert("Fehler beim Speichern: " + res.error);
+        } else {
+          msg.style.color = "#188038";
+          msg.innerText = res.message;
+          loadData();
+        }
+      }).saveSidebarData(json, currentDetectedSource);
+    }
+
+    function changeStep() {
+      const selectedStep = document.getElementById('stepSelector').value;
+      loadData(selectedStep || null);
+    }
+
+    function copyPrompt() {
+      const el = document.getElementById('promptDisplay');
+      el.select();
+      document.execCommand('copy');
+      
+      const btn = event.currentTarget;
+      const oldTxt = btn.innerText;
+      btn.innerText = "✅ Kopiert!";
+      setTimeout(() => btn.innerText = oldTxt, 2000);
+    }
+
+    // ==========================================
+    // TAB 2: FILTER
+    // ==========================================
+    function applyFilters() {
+      const status = document.getElementById('filterStatus').value;
+      const relevance = document.getElementById('filterRelevance').value;
+      
+      const criteria = { status, relevance };
+      
+      document.getElementById('filter-msg').innerText = "Wende Filter an...";
+      
+      google.script.run.withSuccessHandler(() => {
+        let msg = "Filter aktiv";
+        if(status) msg += " | Status: " + status;
+        if(relevance) msg += " | Relevanz: " + relevance;
+        document.getElementById('filter-msg').innerText = msg;
+      }).applyDashboardFilters(criteria);
+    }
+
+    function clearFilters() {
+      document.getElementById('filterStatus').value = "";
+      document.getElementById('filterRelevance').value = "";
+      
+      google.script.run.withSuccessHandler(() => {
+        document.getElementById('filter-msg').innerText = "Alle Zeilen werden angezeigt";
+      }).clearDashboardFilters();
+    }
+
+    // ==========================================
+    // TAB 3: BOOSTER
+    // ==========================================
+    
+    function switchInputMode(mode) {
+      currentInputMode = mode;
+      
+      // Hide all inputs
+      document.getElementById('input-text').style.display = 'none';
+      document.getElementById('input-pdf').style.display = 'none';
+      document.getElementById('input-smart-pdf').style.display = 'none';
+      document.getElementById('input-image').style.display = 'none';
+      
+      // Reset all button styles
+      document.getElementById('btn-text').classList.remove('mode-btn-active');
+      document.getElementById('btn-pdf').classList.remove('mode-btn-active');
+      document.getElementById('btn-smart-pdf').classList.remove('mode-btn-active');
+      document.getElementById('btn-image').classList.remove('mode-btn-active');
+      
+      // Show selected and highlight button
+      if (mode === 'text') {
+        document.getElementById('input-text').style.display = 'block';
+        document.getElementById('btn-text').classList.add('mode-btn-active');
+      } else if (mode === 'pdf') {
+        document.getElementById('input-pdf').style.display = 'block';
+        document.getElementById('btn-pdf').classList.add('mode-btn-active');
+      } else if (mode === 'smart-pdf') {
+        document.getElementById('input-smart-pdf').style.display = 'block';
+        document.getElementById('btn-smart-pdf').classList.add('mode-btn-active');
+      } else if (mode === 'image') {
+        document.getElementById('input-image').style.display = 'block';
+        document.getElementById('btn-image').classList.add('mode-btn-active');
+      }
+    }
+    
+    function loadPendingItems() {
+      const list = document.getElementById('pending-list');
+      list.innerHTML = '<div style="padding:20px; text-align:center; color:#999;">Lade...</div>';
+      
+      google.script.run.withSuccessHandler(items => {
+        if(!items || items.length === 0) {
+          list.innerHTML = '<div style="padding:20px; text-align:center; color:#999;">✅ Keine offenen Papers</div>';
+          return;
+        }
+        
+        list.innerHTML = '';
+        items.forEach(item => {
+          const div = document.createElement('div');
+          div.className = 'item';
+          div.onclick = () => openBoosterEditor(item);
+          
+          const badge = item.relevanz.toLowerCase().includes('hoch') ? 'badge-high' : 'badge-medium';
+          
+          div.innerHTML = `
+            <div class="item-title">${item.title || 'Ohne Titel'}</div>
+            <div class="item-meta">
+              <span class="badge ${badge}">${item.relevanz}</span>
+              Zeile ${item.rowIndex}
+            </div>
+          `;
+          
+          list.appendChild(div);
+        });
+      }).getPendingFulltexts();
+    }
+
+    function openBoosterEditor(item) {
+      currentBoosterRow = item.rowIndex;
+      document.getElementById('booster-title').innerText = item.title;
+      document.getElementById('boosterText').value = '';
+      document.getElementById('booster-editor').style.display = 'block';
+      document.getElementById('booster-msg').innerText = '';
+      switchInputMode('text'); // Default zu Text
+    }
+
+    function cancelBooster() {
+      document.getElementById('booster-editor').style.display = 'none';
+      currentBoosterRow = null;
+    }
+
+    function saveBoosterText() {
+      const text = document.getElementById('boosterText').value;
+      if(!text || text.length < 100) {
+        alert("Bitte mindestens 100 Zeichen Text einfügen");
+        return;
+      }
+      
+      document.getElementById('booster-msg').innerText = "Speichere...";
+      
+      google.script.run.withSuccessHandler(result => {
+        document.getElementById('booster-msg').innerText = result;
+        setTimeout(() => {
+          cancelBooster();
+          loadPendingItems();
+        }, 2000);
+      }).saveManualFulltext(currentBoosterRow, text);
+    }
+    
+    function saveBoosterPdf() {
+      const fileInput = document.getElementById('pdfUpload');
+      const file = fileInput.files[0];
+      
+      if (!file) {
+        alert("Bitte PDF-Datei auswählen");
+        return;
+      }
+      
+      if (!file.name.toLowerCase().endsWith('.pdf')) {
+        alert("Bitte nur PDF-Dateien hochladen");
+        return;
+      }
+      
+      document.getElementById('booster-msg').innerText = "Verarbeite PDF...";
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const base64 = e.target.result.split(',')[1];
+        
+        google.script.run
+          .withSuccessHandler(result => {
+            if (result.error) {
+              document.getElementById('booster-msg').innerText = "❌ " + result.error;
+            } else {
+              document.getElementById('booster-msg').innerText = result.message || "✅ PDF verarbeitet!";
+              setTimeout(() => {
+                cancelBooster();
+                loadPendingItems();
+              }, 2000);
+            }
+          })
+          .withFailureHandler(err => {
+            document.getElementById('booster-msg').innerText = "❌ Fehler: " + err.message;
+          })
+          .processBoosterPdf(currentBoosterRow, base64);
+      };
+      
+      reader.readAsDataURL(file);
+    }
+    
+    function saveBoosterSmartPdf() {
+      const fileInput = document.getElementById('smartPdfUpload');
+      const file = fileInput.files[0];
+      
+      if (!file) {
+        alert("Bitte PDF-Datei auswählen");
+        return;
+      }
+      
+      if (!file.name.toLowerCase().endsWith('.pdf')) {
+        alert("Bitte nur PDF-Dateien hochladen");
+        return;
+      }
+      
+      document.getElementById('booster-msg').innerText = "🧠 Smart Processing...\n1/3: Speichere PDF\n2/3: Gemini analysiert\n3/3: Selective OCR läuft\n\n⏱️ Dies kann 30-60 Sek dauern...";
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const base64 = e.target.result.split(',')[1];
+        
+        google.script.run
+          .withSuccessHandler(result => {
+            if (result.error) {
+              document.getElementById('booster-msg').innerText = "❌ " + result.error;
+            } else {
+              document.getElementById('booster-msg').innerText = result.message || "✅ Smart PDF verarbeitet!";
+              setTimeout(() => {
+                cancelBooster();
+                loadPendingItems();
+              }, 3000);
+            }
+          })
+          .withFailureHandler(err => {
+            document.getElementById('booster-msg').innerText = "❌ Fehler: " + err.message;
+          })
+          .processBoosterPdfWithSelectiveOcr(currentBoosterRow, base64);
+      };
+      
+      reader.readAsDataURL(file);
+    }
+    
+    function saveBoosterImages() {
+      const fileInput = document.getElementById('imageUpload');
+      const files = fileInput.files;
+      
+      if (!files || files.length === 0) {
+        alert("Bitte mindestens ein Bild auswählen");
+        return;
+      }
+      
+      document.getElementById('booster-msg').innerText = `Verarbeite ${files.length} Screenshot(s)...`;
+      
+      const base64Images = [];
+      let processed = 0;
+      
+      for (let i = 0; i < files.length; i++) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          base64Images.push(e.target.result.split(',')[1]);
+          processed++;
+          
+          if (processed === files.length) {
+            // Alle Bilder geladen, jetzt an Server senden
+            google.script.run
+              .withSuccessHandler(result => {
+                if (result.error) {
+                  document.getElementById('booster-msg').innerText = "❌ " + result.error;
+                } else {
+                  document.getElementById('booster-msg').innerText = result.message || "✅ Screenshots verarbeitet!";
+                  setTimeout(() => {
+                    cancelBooster();
+                    loadPendingItems();
+                  }, 2000);
+                }
+              })
+              .withFailureHandler(err => {
+                document.getElementById('booster-msg').innerText = "❌ Fehler: " + err.message;
+              })
+              .processBoosterImages(currentBoosterRow, base64Images);
+          }
+        };
+        reader.readAsDataURL(files[i]);
+      }
+    }
+  </script>
+</body>
+</html>
