@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Google Sans', Arial, sans-serif;
+      font-size: 14px;
+      background: #f8f9fa;
+      color: #202124;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    #header {
+      background: #ea4335;
+      color: white;
+      padding: 14px 20px;
+      flex-shrink: 0;
+    }
+
+    #header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    #header h2 { font-size: 17px; font-weight: 600; }
+
+    #progress-info {
+      font-size: 13px;
+      opacity: 0.9;
+      margin-top: 4px;
+    }
+
+    #progress-bar {
+      margin-top: 8px;
+      height: 5px;
+      background: rgba(255,255,255,0.25);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    #progress-fill {
+      height: 100%;
+      background: white;
+      border-radius: 3px;
+      transition: width 0.3s ease;
+    }
+
+    #body {
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      padding: 16px 20px;
+      gap: 12px;
+    }
+
+    /* Match-Type Badge */
+    #match-badge {
+      display: inline-block;
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .badge-100 { background: #fce8e6; color: #c5221f; }
+    .badge-85 { background: #fef7e0; color: #b06000; }
+    .badge-70 { background: #e8f0fe; color: #1a73e8; }
+
+    /* Paper-Karten nebeneinander */
+    #papers-row {
+      display: flex;
+      gap: 12px;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .paper-card {
+      flex: 1;
+      background: white;
+      border: 2px solid #dadce0;
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow-y: auto;
+      min-height: 0;
+    }
+
+    .paper-card.highlight-new {
+      border-color: #1a73e8;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .card-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #5f6368;
+    }
+
+    .new-badge {
+      background: #e8f0fe;
+      color: #1a73e8;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+
+    .paper-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #202124;
+      line-height: 1.4;
+      flex-shrink: 0;
+    }
+
+    .paper-meta {
+      font-size: 12px;
+      color: #5f6368;
+      line-height: 1.6;
+    }
+
+    .meta-row { display: flex; gap: 6px; }
+    .meta-label { font-weight: 600; color: #3c4043; min-width: 60px; }
+
+    .paper-link {
+      font-size: 12px;
+      color: #1a73e8;
+      text-decoration: none;
+      word-break: break-all;
+    }
+    .paper-link:hover { text-decoration: underline; }
+
+    .status-badge {
+      font-size: 11px;
+      background: #f1f3f4;
+      border-radius: 6px;
+      padding: 3px 8px;
+      color: #3c4043;
+      flex-shrink: 0;
+      align-self: flex-start;
+    }
+
+    /* Aktions-Buttons */
+    #actions {
+      flex-shrink: 0;
+      display: flex;
+      gap: 10px;
+    }
+
+    .action-btn {
+      flex: 1;
+      padding: 11px;
+      border: none;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .action-btn:hover { opacity: 0.85; }
+
+    #btn-keep-a { background: #e6f4ea; color: #137333; }
+    #btn-keep-b { background: #e6f4ea; color: #137333; }
+    #btn-keep-both { background: #f1f3f4; color: #3c4043; }
+    #btn-skip { background: white; color: #5f6368; border: 1.5px solid #dadce0; }
+
+    /* Footer */
+    #footer {
+      flex-shrink: 0;
+      padding: 10px 20px;
+      background: white;
+      border-top: 1px solid #dadce0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      color: #5f6368;
+    }
+
+    #status-msg {
+      padding: 6px 14px;
+      border-radius: 8px;
+      display: none;
+      font-size: 13px;
+    }
+    #status-msg.success { background: #e6f4ea; color: #137333; display: block; }
+    #status-msg.error { background: #fce8e6; color: #c5221f; display: block; }
+#status-msg.info { background: #e8f0fe; color: #1a73e8; display: block; }
+
+    /* Loading */
+    #loading {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      color: #5f6368;
+    }
+
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 4px solid #dadce0;
+      border-top-color: #ea4335;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Done */
+    #done-screen {
+      flex: 1;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: #5f6368;
+    }
+
+    #done-screen .emoji { font-size: 52px; }
+    #done-screen h3 { font-size: 20px; color: #137333; }
+
+    .done-stats { display: flex; gap: 20px; margin-top: 8px; }
+
+    .done-stat {
+      text-align: center;
+      background: white;
+      border: 1px solid #dadce0;
+      border-radius: 10px;
+      padding: 12px 24px;
+    }
+
+    .done-stat .num { font-size: 28px; font-weight: 700; color: #ea4335; }
+    .done-stat .lbl { font-size: 12px; color: #5f6368; margin-top: 2px; }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #9aa0a6;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #dadce0;
+    }
+  </style>
+</head>
+<body>
+
+<div id="header">
+  <div id="header-top">
+    <h2>🔍 Duplikat-Check</h2>
+    <div id="counter">Lade...</div>
+  </div>
+  <div id="progress-info">Prüfe Dashboard...</div>
+  <div id="progress-bar"><div id="progress-fill" style="width:0%"></div></div>
+</div>
+
+<!-- LOADING -->
+<div id="loading">
+  <div class="spinner"></div>
+  <div>Suche nach Duplikaten...</div>
+</div>
+
+<!-- MAIN -->
+<div id="body" style="display:none">
+
+  <!-- Match-Info -->
+  <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
+    <span id="match-badge" class="badge-100">–</span>
+    <span id="confidence-text" style="font-size:13px; color:#5f6368;"></span>
+  </div>
+
+  <!-- Paper-Karten -->
+  <div id="papers-row">
+    <!-- Paper A -->
+    <div class="paper-card" id="card-a">
+      <div class="card-header">
+        <span class="card-label">Paper A</span>
+        <span class="new-badge" id="new-badge-a" style="display:none">Neu importiert</span>
+      </div>
+      <div class="paper-title" id="title-a">–</div>
+      <div class="paper-meta" id="meta-a"></div>
+      <div class="status-badge" id="status-a"></div>
+      <a id="link-a" class="paper-link" href="#" target="_blank">PubMed öffnen ↗</a>
+    </div>
+
+    <!-- Paper B -->
+    <div class="paper-card" id="card-b">
+      <div class="card-header">
+        <span class="card-label">Paper B</span>
+        <span class="new-badge" id="new-badge-b" style="display:none">Neu importiert</span>
+      </div>
+      <div class="paper-title" id="title-b">–</div>
+      <div class="paper-meta" id="meta-b"></div>
+      <div class="status-badge" id="status-b"></div>
+      <a id="link-b" class="paper-link" href="#" target="_blank">PubMed öffnen ↗</a>
+    </div>
+  </div>
+
+  <div class="divider">Entscheidung</div>
+
+  <!-- Aktionen -->
+  <div id="actions">
+    <button class="action-btn" id="btn-keep-a" onclick="decide('DELETE_B')">
+      ✓ A behalten, B löschen
+    </button>
+    <button class="action-btn" id="btn-keep-both" onclick="decide('KEEP_BOTH')">
+      ⇔ Beide behalten
+    </button>
+    <button class="action-btn" id="btn-keep-b" onclick="decide('DELETE_A')">
+      ✓ B behalten, A löschen
+    </button>
+    <button class="action-btn" id="btn-skip" onclick="decide('SKIP')">
+      → Überspringen
+    </button>
+  </div>
+
+</div>
+
+<!-- DONE -->
+<div id="done-screen">
+  <div class="emoji">✅</div>
+  <h3>Duplikat-Check abgeschlossen</h3>
+  <div class="done-stats">
+    <div class="done-stat">
+      <div class="num" id="done-deleted">0</div>
+      <div class="lbl">Gelöscht</div>
+    </div>
+    <div class="done-stat">
+      <div class="num" id="done-kept">0</div>
+      <div class="lbl">Beide behalten</div>
+    </div>
+    <div class="done-stat">
+      <div class="num" id="done-skipped">0</div>
+      <div class="lbl">Übersprungen</div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div id="footer">
+  <div id="status-msg"></div>
+  <div id="footer-hint" style="font-size:12px; color:#9aa0a6;">
+    Klicke auf einen PubMed-Link um das Paper zu prüfen, bevor du entscheidest.
+  </div>
+</div>
+
+<script>
+  var pairs = [];
+  var currentIndex = 0;
+  var statDeleted = 0;
+  var statKept = 0;
+  var statSkipped = 0;
+  var isProcessing = false;
+
+  function init() {
+    google.script.run
+      .withSuccessHandler(function(data) {
+        pairs = data;
+        if (pairs.length === 0) {
+          showDone();
+          return;
+        }
+        showLoading(false);
+        renderPair(0);
+      })
+      .withFailureHandler(function(err) {
+        showStatus('Fehler: ' + (err.message || err), 'error');
+      })
+      .getDuplicatePairs();
+  }
+
+  function renderPair(idx) {
+    if (idx >= pairs.length) { showDone(); return; }
+
+    var pair = pairs[idx];
+    var a = pair.a;
+    var b = pair.b;
+
+    // Header
+    document.getElementById('counter').textContent =
+      (idx + 1) + ' / ' + pairs.length;
+    document.getElementById('progress-info').textContent =
+      'Paar ' + (idx + 1) + ' von ' + pairs.length + ' prüfen';
+    document.getElementById('progress-fill').style.width =
+      Math.round((idx / pairs.length) * 100) + '%';
+
+    // Badge
+    var badge = document.getElementById('match-badge');
+    badge.textContent = pair.matchType + ' (' + pair.confidence + '%)';
+    badge.className = 'badge-' + (pair.confidence === 100 ? '100' : pair.confidence >= 85 ? '85' : '70');
+
+    document.getElementById('confidence-text').textContent =
+      pair.confidence === 100
+        ? 'Sicheres Duplikat – sehr wahrscheinlich dasselbe Paper.'
+        : pair.confidence >= 85
+          ? 'Wahrscheinliches Duplikat – bitte Titel und Metadaten vergleichen.'
+          : 'Mögliches Duplikat – bitte sorgfältig prüfen.';
+
+    // Paper A
+    renderCard('a', a);
+    renderCard('b', b);
+
+    // Button-Labels anpassen
+    document.getElementById('btn-keep-a').textContent =
+      '✓ A behalten' + (b.isNew ? ', Neu (B) löschen' : ', B löschen');
+    document.getElementById('btn-keep-b').textContent =
+      '✓ B behalten' + (a.isNew ? ', Neu (A) löschen' : ', A löschen');
+
+    document.getElementById('status-msg').style.display = 'none';
+    isProcessing = false;
+  }
+
+  function renderCard(which, paper) {
+    document.getElementById('title-' + which).textContent =
+      paper.titelOrig || paper.titel || '(kein Titel)';
+
+    // Neu-Badge
+    var newBadge = document.getElementById('new-badge-' + which);
+    if (paper.isNew) {
+      newBadge.style.display = 'inline-block';
+      document.getElementById('card-' + which).classList.add('highlight-new');
+    } else {
+      newBadge.style.display = 'none';
+      document.getElementById('card-' + which).classList.remove('highlight-new');
+    }
+
+    // Meta
+    var meta = '';
+    if (paper.autoren) meta += '<div class="meta-row"><span class="meta-label">Autoren:</span> ' + esc(paper.autoren) + '</div>';
+    if (paper.journal) meta += '<div class="meta-row"><span class="meta-label">Journal:</span> ' + esc(paper.journal) + '</div>';
+    if (paper.pubdate) meta += '<div class="meta-row"><span class="meta-label">Datum:</span> ' + esc(paper.pubdate) + '</div>';
+    if (paper.doi) meta += '<div class="meta-row"><span class="meta-label">DOI:</span> ' + esc(paper.doi) + '</div>';
+    if (paper.pmid) meta += '<div class="meta-row"><span class="meta-label">PMID:</span> ' + esc(paper.pmid) + '</div>';
+    document.getElementById('meta-' + which).innerHTML = meta;
+
+    // Status
+    document.getElementById('status-' + which).textContent = paper.status || '';
+
+    // Link
+    var linkEl = document.getElementById('link-' + which);
+    if (paper.link) {
+      linkEl.href = paper.link;
+      linkEl.textContent = 'PubMed öffnen ↗';
+      linkEl.style.display = 'block';
+    } else if (paper.pmid) {
+linkEl.href = 'https://pubmed.ncbi.nlm.nih.gov/' + paper.pmid + '/';
+      linkEl.textContent = 'PubMed öffnen ↗';
+      linkEl.style.display = 'block';
+    } else {
+      linkEl.style.display = 'none';
+    }
+  }
+
+  function decide(action) {
+    if (isProcessing) return;
+    if (action === 'SKIP') {
+      statSkipped++;
+      currentIndex++;
+      renderPair(currentIndex);
+      return;
+    }
+
+    var pair = pairs[currentIndex];
+
+    if (action === 'KEEP_BOTH') {
+      statKept++;
+      showStatus('Beide behalten.', 'info');
+      setTimeout(function() {
+        currentIndex++;
+        renderPair(currentIndex);
+      }, 600);
+      return;
+    }
+
+    isProcessing = true;
+    var deleteUuid = action === 'DELETE_A' ? pair.a.uuid : pair.b.uuid;
+    var keepUuid = action === 'DELETE_A' ? pair.b.uuid : pair.a.uuid;
+
+    showStatus('Lösche Duplikat...', 'info');
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        if (!result.success) {
+          showStatus('Fehler: ' + result.error, 'error');
+          isProcessing = false;
+          return;
+        }
+        statDeleted++;
+        showStatus('✓ Duplikat gelöscht.', 'success');
+        setTimeout(function() {
+          currentIndex++;
+          renderPair(currentIndex);
+        }, 800);
+      })
+      .withFailureHandler(function(err) {
+        showStatus('Fehler: ' + err.message, 'error');
+        isProcessing = false;
+      })
+      .processDuplicateDecision({
+        action: action,
+        deleteUuid: deleteUuid,
+        keepUuid: keepUuid
+      });
+  }
+
+  function showLoading(show) {
+    document.getElementById('loading').style.display = show ? 'flex' : 'none';
+    document.getElementById('body').style.display = show ? 'none' : 'flex';
+  }
+
+  function showDone() {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('body').style.display = 'none';
+    document.getElementById('done-screen').style.display = 'flex';
+    document.getElementById('done-deleted').textContent = statDeleted;
+    document.getElementById('done-kept').textContent = statKept;
+    document.getElementById('done-skipped').textContent = statSkipped;
+    document.getElementById('progress-fill').style.width = '100%';
+    document.getElementById('counter').textContent = 'Fertig';
+    document.querySelector('#header').style.background = '#137333';
+    document.querySelector('#header h2').textContent = '✅ Duplikat-Check abgeschlossen';
+    document.getElementById('progress-info').textContent =
+      statDeleted + ' gelöscht · ' + statKept + ' behalten · ' + statSkipped + ' übersprungen';
+  }
+
+  function showStatus(msg, type) {
+    var el = document.getElementById('status-msg');
+    el.textContent = msg;
+    el.className = type;
+    el.style.display = 'block';
+  }
+
+  function esc(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  init();
+</script>
+</body>
+</html>
