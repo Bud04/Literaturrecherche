@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; font-size: 14px; color: #333; }
+    label { display: block; margin-top: 15px; font-weight: bold; margin-bottom: 5px; }
+    input[type="text"], input[type="number"], input[type="date"], select { 
+      width: 100%; padding: 8px; box-sizing: border-box; 
+      border: 1px solid #ccc; border-radius: 4px; 
+    }
+    .checkbox-group { margin-top: 15px; }
+    .checkbox-group input { margin-right: 8px; }
+    button { 
+      margin-top: 25px; padding: 10px 20px; background-color: #4285f4; 
+      color: white; border: none; border-radius: 4px; cursor: pointer; width: 100%; 
+    }
+    button:hover { background-color: #357ae8; }
+    #status { margin-top: 15px; padding: 10px; display: none; border-radius: 4px; }
+    .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    .info { 
+      background-color: #e7f3ff; border-left: 4px solid #2196F3; 
+      padding: 10px; margin-bottom: 15px; font-size: 12px; 
+    }
+    .limit-container {
+      display: flex;
+      gap: 10px;
+    }
+    .limit-item { flex: 1; }
+  </style>
+</head>
+<body>
+  <h2>Gmail Import</h2>
+  
+  <div class="info">
+    Wählen Sie, ob Sie eine feste Anzahl Mails prüfen oder so lange suchen wollen, bis genügend neue Publikationen gefunden wurden.
+  </div>
+  
+  <label>Import-Strategie:</label>
+  <div class="limit-container">
+    <div class="limit-item">
+      <select id="limitMode">
+        <option value="publications">Stoppen nach X neuen Publikationen</option>
+        <option value="mails">Stoppen nach X geprüften Mails</option>
+      </select>
+    </div>
+    <div class="limit-item" style="flex: 0 0 80px;">
+      <input type="number" id="limitCount" value="10" min="1" max="500">
+    </div>
+  </div>
+  
+  <label for="startDate">Startdatum (optional):</label>
+  <input type="date" id="startDate">
+  
+  <div class="checkbox-group">
+    <label style="font-weight: normal;">
+      <input type="checkbox" id="onlyUnread"> Nur ungelesene Mails
+    </label>
+  </div>
+  
+  <button onclick="startImport()">Import starten</button>
+  
+  <div id="status"></div>
+  
+  <script>
+    function startImport() {
+      const startDate = document.getElementById('startDate').value;
+      const limitMode = document.getElementById('limitMode').value;
+      const limitCount = document.getElementById('limitCount').value;
+      const onlyUnread = document.getElementById('onlyUnread').checked;
+      
+      const options = {
+        startDate: startDate,
+        limitMode: limitMode,      // 'publications' oder 'mails'
+        limitCount: parseInt(limitCount) || 10,
+        onlyUnread: onlyUnread
+      };
+      
+      showStatus('Import läuft... Bitte warten.', false);
+      
+      google.script.run
+        .withSuccessHandler(onSuccess)
+        .withFailureHandler(onFailure)
+        .executeMailImport(options);
+    }
+    
+    function onSuccess(result) {
+      showStatus(result, true);
+    }
+    
+    function onFailure(error) {
+      showStatus('Fehler: ' + error.message, false);
+    }
+    
+    function showStatus(message, isSuccess) {
+      const statusDiv = document.getElementById('status');
+      statusDiv.innerText = message; // Text statt HTML für Sicherheit
+      statusDiv.className = isSuccess ? 'success' : 'error';
+      statusDiv.style.display = 'block';
+    }
+  </script>
+</body>
+</html>
