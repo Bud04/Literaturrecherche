@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Google Sans', Arial, sans-serif;
+      font-size: 14px;
+      background: #f8f9fa;
+      color: #202124;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    #header { background: #1a73e8; color: white; padding: 16px 20px; flex-shrink: 0; }
+    #header h2 { font-size: 17px; font-weight: 600; }
+    #header p  { font-size: 13px; opacity: 0.85; margin-top: 4px; }
+    #body { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; }
+    #loading { flex: 1; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 14px; color: #5f6368; }
+    .spinner { width: 32px; height: 32px; border: 3px solid #dadce0; border-top-color: #1a73e8; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .section-title { font-size: 11px; font-weight: 700; color: #5f6368; text-transform: uppercase; letter-spacing: 0.8px; margin-top: 6px; margin-bottom: 2px; }
+    .card { background: white; border: 1px solid #dadce0; border-radius: 10px; overflow: hidden; }
+    .row { display: flex; align-items: center; padding: 10px 16px; gap: 12px; border-bottom: 1px solid #f1f3f4; }
+    .row:last-child { border-bottom: none; }
+    .row-icon { font-size: 17px; width: 26px; text-align: center; flex-shrink: 0; }
+    .row-label { flex: 1; font-size: 14px; color: #3c4043; }
+    .row-count { font-size: 20px; font-weight: 700; min-width: 36px; text-align: right; }
+    .row-pct { font-size: 11px; color: #80868b; min-width: 36px; text-align: right; }
+    .bar-wrap { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+    .bar-bg { height: 5px; background: #f1f3f4; border-radius: 3px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+    .c-blue { color: #1a73e8; } .c-green { color: #137333; } .c-grey { color: #5f6368; }
+    .c-orange { color: #e37400; } .c-purple { color: #8430ce; }
+    .bg-blue { background: #1a73e8; } .bg-green { background: #34a853; }
+    .bg-purple { background: #8430ce; } .bg-grey { background: #9aa0a6; }
+    .total-card { background: #1a73e8; color: white; border-radius: 10px; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; }
+    .total-card .t-label { font-size: 14px; opacity: 0.9; }
+    .total-card .t-sub   { font-size: 12px; opacity: 0.7; margin-top: 2px; }
+    .total-card .t-num   { font-size: 36px; font-weight: 700; }
+    .triage-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr; gap: 6px; }
+    .triage-box { border-radius: 8px; padding: 10px 8px; text-align: center; }
+    .triage-box .t-count { font-size: 22px; font-weight: 700; }
+    .triage-box .t-pct   { font-size: 11px; margin-top: 1px; opacity: 0.75; }
+    .triage-box .t-label { font-size: 10px; margin-top: 3px; opacity: 0.85; }
+    .tb-red     { background: #fce8e6; color: #c5221f; }
+    .tb-orange  { background: #fef3e2; color: #e37400; }
+    .tb-yellow  { background: #fef9e7; color: #b06000; }
+    .tb-green   { background: #e6f4ea; color: #137333; }
+    .tb-dkgreen { background: #c8e6c9; color: #0d5c24; }
+    .mittel-card { background: #fef9e7; border: 1px solid #fbbc04; border-radius: 10px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .mittel-card .m-title { font-size: 14px; font-weight: 600; color: #b06000; }
+    .mittel-card .m-sub   { font-size: 12px; color: #80868b; margin-top: 3px; }
+    .mittel-card .m-num   { font-size: 28px; font-weight: 700; color: #b06000; }
+    .completion-card { background: white; border: 1px solid #dadce0; border-radius: 10px; padding: 14px 16px; }
+    .completion-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+    .completion-top .c-title { font-size: 14px; font-weight: 600; color: #3c4043; }
+    .completion-top .c-pct   { font-size: 28px; font-weight: 700; color: #137333; }
+    .big-bar-bg { height: 10px; background: #f1f3f4; border-radius: 5px; overflow: hidden; }
+    .big-bar-fill { height: 100%; background: linear-gradient(90deg, #34a853, #1a73e8); border-radius: 5px; transition: width 0.8s ease; }
+    .completion-labels { display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; color: #80868b; }
+    .qual-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .qual-box { background: white; border: 1px solid #dadce0; border-radius: 10px; padding: 12px 14px; }
+    .qual-box .q-icon  { font-size: 20px; }
+    .qual-box .q-num   { font-size: 24px; font-weight: 700; color: #1a73e8; }
+    .qual-box .q-label { font-size: 12px; color: #5f6368; }
+    .qual-box .q-pct   { font-size: 11px; color: #80868b; }
+    .error-detail { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 16px; }
+    .error-chip { background: #f1f3f4; border-radius: 20px; padding: 4px 12px; font-size: 12px; color: #3c4043; }
+    .error-chip span { color: #c5221f; font-weight: 700; margin-right: 4px; }
+    #footer { padding: 10px 20px; background: white; border-top: 1px solid #dadce0; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+    #refresh-btn { background: #1a73e8; color: white; border: none; border-radius: 8px; padding: 8px 18px; font-size: 13px; font-weight: 600; cursor: pointer; }
+    #refresh-btn:hover { background: #1557b0; }
+    #last-updated { font-size: 12px; color: #80868b; }
+    .progress-ring-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .progress-ring-wrap .ring-label { font-size: 11px; opacity: 0.8; }
+  </style>
+</head>
+<body>
+<div id="header">
+  <h2>📊 Pipeline Übersicht</h2>
+  <p>Status aller Papers im Workflow</p>
+</div>
+<div id="loading" style="display:flex">
+  <div class="spinner"></div>
+  <div>Lade Statistiken...</div>
+</div>
+<div id="body" style="display:none">
+
+  <div class="total-card">
+    <div>
+      <div class="t-label">Papers gesamt</div>
+      <div class="t-num" id="val-total">–</div>
+      <div class="t-sub" id="val-neu-woche">– diese Woche neu</div>
+    </div>
+    <div class="progress-ring-wrap">
+      <svg width="64" height="64" viewBox="0 0 64 64">
+        <circle cx="32" cy="32" r="26" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="8"/>
+        <circle id="ring-fill" cx="32" cy="32" r="26" fill="none" stroke="white" stroke-width="8"
+          stroke-dasharray="163.4" stroke-dashoffset="163.4" stroke-linecap="round"
+          transform="rotate(-90 32 32)" style="transition: stroke-dashoffset 0.8s ease"/>
+      </svg>
+      <div class="ring-label" id="ring-pct">0%</div>
+    </div>
+  </div>
+
+  <div class="completion-card">
+    <div class="completion-top">
+      <div class="c-title">✅ Workflow komplett</div>
+      <div class="c-pct" id="val-komplett-pct">0%</div>
+    </div>
+    <div class="big-bar-bg"><div class="big-bar-fill" id="bar-komplett-big" style="width:0%"></div></div>
+    <div class="completion-labels">
+      <span id="val-komplett-abs">0 komplett</span>
+      <span id="val-remaining">0 ausstehend</span>
+    </div>
+  </div>
+
+  <div class="section-title">⏳ Ausstehende Flows</div>
+  <div class="card">
+    <div class="row">
+      <div class="row-icon">🔬</div>
+      <div class="bar-wrap"><div class="row-label">Researcher</div><div class="bar-bg"><div class="bar-fill bg-blue" id="bar-researcher" style="width:0%"></div></div></div>
+      <div class="row-pct" id="pct-researcher"></div>
+      <div class="row-count c-blue" id="val-researcher">–</div>
+    </div>
+    <div class="row">
+      <div class="row-icon">🔍</div>
+      <div class="bar-wrap"><div class="row-label">Triage</div><div class="bar-bg"><div class="bar-fill bg-blue" id="bar-triage" style="width:0%"></div></div></div>
+      <div class="row-pct" id="pct-triage"></div>
+      <div class="row-count c-blue" id="val-triage">–</div>
+    </div>
+  </div>
+
+  <div class="section-title">🔀 Triage Ergebnis</div>
+  <div class="triage-grid">
+    <div class="triage-box tb-red"><div class="t-count" id="val-irrelevant">–</div><div class="t-pct" id="pct-irrelevant"></div><div class="t-label">⛔ Irrelevant</div></div>
+    <div class="triage-box tb-orange"><div class="t-count" id="val-niedrig">–</div><div class="t-pct" id="pct-niedrig"></div><div class="t-label">🔻 Niedrig</div></div>
+    <div class="triage-box tb-yellow"><div class="t-count" id="val-mittel">–</div><div class="t-pct" id="pct-mittel"></div><div class="t-label">⚠️ Mittel</div></div>
+    <div class="triage-box tb-green"><div class="t-count" id="val-hoch">–</div><div class="t-pct" id="pct-hoch"></div><div class="t-label">📈 Hoch</div></div>
+    <div class="triage-box tb-dkgreen"><div class="t-count" id="val-sehrhoch">–</div><div class="t-pct" id="pct-sehrhoch"></div><div class="t-label">🌟 Sehr hoch</div></div>
+  </div>
+
+  <div class="mittel-card">
+    <div><div class="m-title">⚠️ Mittel – Manuell fortsetzen</div><div class="m-sub">Warten auf manuelle Entscheidung</div></div>
+    <div class="m-num" id="val-mittel-2">–</div>
+  </div>
+
+  <div class="section-title">📋 Weitere Flows (Hoch / Sehr hoch)</div>
+  <div class="card">
+    <div class="row"><div class="row-icon">📁</div><div class="bar-wrap"><div class="row-label">Metadaten</div><div class="bar-bg"><div class="bar-fill bg-purple" id="bar-metadaten" style="width:0%"></div></div></div><div class="row-pct" id="pct-metadaten"></div><div class="row-count c-purple" id="val-metadaten">–</div></div>
+    <div class="row"><div class="row-icon">🧠</div><div class="bar-wrap"><div class="row-label">Master Analyse</div><div class="bar-bg"><div class="bar-fill bg-purple" id="bar-analyse" style="width:0%"></div></div></div><div class="row-pct" id="pct-analyse"></div><div class="row-count c-purple" id="val-analyse">–</div></div>
+    <div class="row"><div class="row-icon">✏️</div><div class="bar-wrap"><div class="row-label">Redaktion</div><div class="bar-bg"><div class="bar-fill bg-purple" id="bar-redaktion" style="width:0%"></div></div></div><div class="row-pct" id="pct-redaktion"></div><div class="row-count c-purple" id="val-redaktion">–</div></div>
+    <div class="row"><div class="row-icon">✔️</div><div class="bar-wrap"><div class="row-label">Faktencheck</div><div class="bar-bg"><div class="bar-fill bg-purple" id="bar-faktencheck" style="width:0%"></div></div></div><div class="row-pct" id="pct-faktencheck"></div><div class="row-count c-purple" id="val-faktencheck">–</div></div>
+    <div class="row"><div class="row-icon">👁️</div><div class="bar-wrap"><div class="row-label">Review</div><div class="bar-bg"><div class="bar-fill bg-purple" id="bar-review" style="width:0%"></div></div></div><div class="row-pct" id="pct-review"></div><div class="row-count c-purple" id="val-review">–</div></div>
+  </div>
+
+  <div class="section-title">🗂️ Datenqualität</div>
+  <div class="qual-grid">
+    <div class="qual-box"><div class="q-icon">📄</div><div class="q-num" id="val-volltext">–</div><div class="q-label">Mit Volltext</div><div class="q-pct" id="pct-volltext"></div></div>
+    <div class="qual-box"><div class="q-icon">📝</div><div class="q-num" id="val-abstract">–</div><div class="q-label">Nur Abstract</div><div class="q-pct" id="pct-abstract"></div></div>
+    <div class="qual-box"><div class="q-icon">🔗</div><div class="q-num c-orange" id="val-doi">–</div><div class="q-label">Fehlende DOI</div><div class="q-pct" id="pct-doi"></div></div>
+    <div class="qual-box"><div class="q-icon">🆔</div><div class="q-num c-orange" id="val-pmid">–</div><div class="q-label">Fehlende PMID</div><div class="q-pct" id="pct-pmid"></div></div>
+  </div>
+
+  <div class="section-title">❌ Fehler</div>
+  <div class="card">
+    <div class="row"><div class="row-icon">❌</div><div class="bar-wrap"><div class="row-label">Dauerhafter Fehler gesamt</div><div class="bar-bg"><div class="bar-fill bg-grey" id="bar-fehler" style="width:0%"></div></div></div><div class="row-pct" id="pct-fehler"></div><div class="row-count c-grey" id="val-fehler">–</div></div>
+    <div class="error-detail" id="error-detail"></div>
+  </div>
+
+  <div class="section-title">🏁 Abschluss</div>
+  <div class="card">
+    <div class="row"><div class="row-icon">✅</div><div class="bar-wrap"><div class="row-label">Workflow komplett</div><div class="bar-bg"><div class="bar-fill bg-green" id="bar-komplett" style="width:0%"></div></div></div><div class="row-pct" id="pct-komplett"></div><div class="row-count c-green" id="val-komplett">–</div></div>
+  </div>
+
+  <div style="height:8px"></div>
+</div>
+
+<div id="footer">
+  <div id="last-updated">–</div>
+  <button id="refresh-btn" onclick="load()">🔄 Aktualisieren</button>
+</div>
+
+<script>
+  function load() {
+    document.getElementById('loading').style.display = 'flex';
+    document.getElementById('body').style.display    = 'none';
+    google.script.run
+      .withSuccessHandler(render)
+      .withFailureHandler(function(e) {
+        document.getElementById('loading').innerHTML =
+          '<div style="color:#c5221f;padding:20px">Fehler: ' + (e.message || e) + '</div>';
+      })
+      .getFlowStatusOverview();
+  }
+
+  function pct(v, t)     { return t ? Math.round((v/t)*100) + '%' : '0%'; }
+  function bar(id, v, t) { var el = document.getElementById(id); if(el) el.style.width = (t ? Math.min(100,Math.round((v/t)*100)) : 0) + '%'; }
+  function set(id, v)    { var el = document.getElementById(id); if(el) el.textContent = v; }
+
+  function render(s) {
+    if (!s) return;
+    var total    = s.total    || 1;
+    var relevant = (s.triageHoch || 0) + (s.triageSehrHoch || 0);
+    var kompPct  = Math.round(((s.komplett||0) / total) * 100);
+
+    set('val-total',     s.total);
+    set('val-neu-woche', (s.neuDieseWoche||0) + ' diese Woche neu');
+
+    var ring = document.getElementById('ring-fill');
+    if (ring) ring.setAttribute('stroke-dashoffset', 163.4 - (kompPct/100)*163.4);
+    set('ring-pct', kompPct + '%');
+
+    set('val-komplett-pct', kompPct + '%');
+    set('val-komplett-abs', (s.komplett||0) + ' komplett');
+    set('val-remaining',    (total - (s.komplett||0)) + ' ausstehend');
+    var bigBar = document.getElementById('bar-komplett-big');
+    if (bigBar) bigBar.style.width = kompPct + '%';
+
+    set('val-researcher', s.brauchtResearcher); set('pct-researcher', pct(s.brauchtResearcher, total)); bar('bar-researcher', s.brauchtResearcher, total);
+    set('val-triage',     s.brauchtTriage);     set('pct-triage',     pct(s.brauchtTriage, total));     bar('bar-triage',     s.brauchtTriage,     total);
+    set('val-irrelevant', s.triageIrrelevant);  set('pct-irrelevant', pct(s.triageIrrelevant, total));
+    set('val-niedrig',    s.triageNiedrig);     set('pct-niedrig',    pct(s.triageNiedrig, total));
+    set('val-mittel',     s.triageMittel);      set('pct-mittel',     pct(s.triageMittel, total));
+    set('val-hoch',       s.triageHoch);        set('pct-hoch',       pct(s.triageHoch, total));
+    set('val-sehrhoch',   s.triageSehrHoch);    set('pct-sehrhoch',   pct(s.triageSehrHoch, total));
+    set('val-mittel-2',   s.triageMittel);
+
+    var relBase = relevant || 1;
+    set('val-metadaten',   s.brauchtMetadaten);   set('pct-metadaten',   pct(s.brauchtMetadaten,   relBase)); bar('bar-metadaten',   s.brauchtMetadaten,   relBase);
+    set('val-analyse',     s.brauchtAnalyse);     set('pct-analyse',     pct(s.brauchtAnalyse,     relBase)); bar('bar-analyse',     s.brauchtAnalyse,     relBase);
+    set('val-redaktion',   s.brauchtRedaktion);   set('pct-redaktion',   pct(s.brauchtRedaktion,   relBase)); bar('bar-redaktion',   s.brauchtRedaktion,   relBase);
+    set('val-faktencheck', s.brauchtFaktencheck); set('pct-faktencheck', pct(s.brauchtFaktencheck, relBase)); bar('bar-faktencheck', s.brauchtFaktencheck, relBase);
+    set('val-review',      s.brauchtReview);      set('pct-review',      pct(s.brauchtReview,      relBase)); bar('bar-review',      s.brauchtReview,      relBase);
+
+    set('val-volltext', s.hatVolltext||0); set('pct-volltext', pct(s.hatVolltext, total));
+    set('val-abstract', s.nurAbstract||0); set('pct-abstract', pct(s.nurAbstract, total));
+    set('val-doi',      s.fehlendeDoi||0); set('pct-doi',      pct(s.fehlendeDoi, total));
+    set('val-pmid',     s.fehlendePmid||0);set('pct-pmid',     pct(s.fehlendePmid, total));
+
+    set('val-fehler', s.fehler||0); set('pct-fehler', pct(s.fehler, total)); bar('bar-fehler', s.fehler, total);
+    set('val-komplett', s.komplett||0); set('pct-komplett', pct(s.komplett, total)); bar('bar-komplett', s.komplett, total);
+
+    var ed = document.getElementById('error-detail');
+    if (ed) {
+      ed.innerHTML = '';
+      var hasAny = false;
+      for (var fn in (s.fehlerPerFlow||{})) {
+        if (s.fehlerPerFlow[fn] > 0) {
+          hasAny = true;
+          var chip = document.createElement('div');
+          chip.className = 'error-chip';
+          chip.innerHTML = '<span>' + s.fehlerPerFlow[fn] + '</span>' + fn;
+          ed.appendChild(chip);
+        }
+      }
+      if (!hasAny) ed.style.display = 'none';
+    }
+
+    var now = new Date();
+    set('last-updated', 'Zuletzt: ' + now.toLocaleTimeString('de-DE', {hour:'2-digit',minute:'2-digit',second:'2-digit'}));
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('body').style.display    = 'flex';
+  }
+
+  load();
+</script>
+</body>
+</html>
