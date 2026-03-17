@@ -210,3 +210,8 @@ function validateAuthors(authors) {
   if (!authors) return true;
   return true;
 }
+
+
+function getDashboardColumnIndex(headerName) {
+  return DASHBOARD_HEADERS.indexOf(headerName) + 1;
+}
