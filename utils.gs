@@ -77,10 +77,6 @@ function getNextEmptyRowInDashboard() {
   return lastRow + 1;
 }
 
-function getDashboardColumnIndex(headerName) {
-  return DASHBOARD_HEADERS.indexOf(headerName) + 1;
-}
-
 function getDashboardDataByUUID(uuid) {
   const row = findDashboardRowByUUID(uuid);
   if (row === -1) return null;
