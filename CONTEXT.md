@@ -1,6 +1,6 @@
 VitalAire Literaturrecherche – Projekt-Kontext für Claude
 Kurzanleitung für neue Chats
-Schick diese URL: `https://raw.githubusercontent.com/Bud04/Literaturrecherche/main/CONTEXT.md`
+Schick diese URL: https://raw.githubusercontent.com/Bud04/Literaturrecherche/refs/heads/main/CONTEXT.md
 Schick die Raw-URLs der relevanten Dateien (siehe "Welche Dateien für welche Aufgabe")
 Beschreibe das Problem / Feature – kein weiterer Kontext nötig
 ---
