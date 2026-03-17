@@ -1,0 +1,219 @@
+// FILE: BatchPromptDiaglo.html
+
+
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      padding: 20px; 
+      font-size: 14px; 
+      color: #333; 
+    }
+    h2 { 
+      color: #1a73e8; 
+      margin-bottom: 20px; 
+      font-size: 18px;
+    }
+    .info-box {
+      background: #e8f0fe;
+      border-left: 4px solid #1a73e8;
+      padding: 12px;
+      margin-bottom: 20px;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+    label { 
+      display: block; 
+      margin-top: 15px; 
+      font-weight: bold; 
+      margin-bottom: 5px; 
+    }
+    select, input[type="number"] { 
+      width: 100%; 
+      padding: 8px; 
+      box-sizing: border-box; 
+      border: 1px solid #ccc; 
+      border-radius: 4px; 
+    }
+    .checkbox-group { 
+      margin-top: 15px; 
+    }
+    .checkbox-group input { 
+      margin-right: 8px; 
+    }
+    .btn-container {
+      display: flex;
+      gap: 10px;
+      margin-top: 25px;
+    }
+    button { 
+      flex: 1;
+      padding: 12px 20px; 
+      border: none; 
+      border-radius: 4px; 
+      cursor: pointer; 
+      font-weight: bold;
+    }
+    .btn-primary {
+      background-color: #1a73e8; 
+      color: white; 
+    }
+    .btn-primary:hover { 
+      background-color: #1557b0; 
+    }
+    .btn-secondary {
+      background-color: #5f6368;
+      color: white;
+    }
+    .btn-secondary:hover {
+      background-color: #3c4043;
+    }
+    #status { 
+      margin-top: 15px; 
+      padding: 10px; 
+      display: none; 
+      border-radius: 4px; 
+    }
+    .success { 
+      background-color: #d4edda; 
+      color: #155724; 
+      border: 1px solid #c3e6cb; 
+    }
+    .error { 
+      background-color: #f8d7da; 
+      color: #721c24; 
+      border: 1px solid #f5c6cb; 
+    }
+    .phase-desc {
+      font-size: 11px;
+      color: #666;
+      margin-top: 5px;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <h2>🎯 Batch Prompt-Generierung</h2>
+  
+  <div class="info-box">
+    <strong>Workflow:</strong><br>
+    1. Phase & Modus wählen<br>
+    2. Prompts werden in "Manuelle Prompts" Sheet generiert<br>
+    3. Du kopierst sie zu ChatGPT<br>
+    4. Antworten zurück einfügen<br>
+    5. Import über Menü → Phase X Antworten importieren
+  </div>
+  
+  <label for="phase">Phase auswählen:</label>
+  <select id="phase" onchange="updatePhaseInfo()">
+    <option value="RESEARCHER">Phase 0: Volltext-Recherche</option>
+    <option value="TRIAGE">Phase 1: Kategorisierung & Triage</option>
+    <option value="METADATEN">Phase 2: Metadaten-Extraktion</option>
+    <option value="MASTER_ANALYSE" selected>Phase 3: Strategische Analyse</option>
+    <option value="REDAKTION">Phase 4: Redaktions-Check</option>
+    <option value="FAKTENCHECK">Phase 5: Faktencheck</option>
+    <option value="REVIEW">Phase 6: Senior Review</option>
+  </select>
+  <div id="phase-desc" class="phase-desc"></div>
+  
+  <label style="margin-top: 20px;">Modus:</label>
+  <div class="checkbox-group">
+    <label style="font-weight: normal; display: inline-flex; align-items: center;">
+      <input type="radio" name="mode" value="selection" id="modeSelection" checked>
+      Nur markierte Zeilen im Dashboard
+    </label>
+  </div>
+  <div class="checkbox-group">
+    <label style="font-weight: normal; display: inline-flex; align-items: center;">
+      <input type="radio" name="mode" value="auto">
+      Automatisch: Alle Zeilen die bereit sind
+    </label>
+  </div>
+  
+  <label for="maxCount">Maximale Anzahl (optional):</label>
+  <input type="number" id="maxCount" min="1" max="100" placeholder="Leer lassen = alle">
+  <div class="phase-desc">Begrenzt die Anzahl der generierten Prompts</div>
+  
+  <div class="btn-container">
+    <button class="btn-secondary" onclick="showReadiness()">📊 Statistik zeigen</button>
+    <button class="btn-primary" onclick="generatePrompts()">✅ Prompts generieren</button>
+  </div>
+  
+  <div id="status"></div>
+  
+  <script>
+    const phaseInfo = {
+      RESEARCHER: "Sucht Volltext via DOI, extrahiert PICO-Daten",
+      TRIAGE: "Kategorisiert nach Hauptkategorie & Schlagwörtern",
+      METADATEN: "Extrahiert Jahr, Studientyp, Journal-Name",
+      MASTER_ANALYSE: "Strategische Bewertung: Relevanz, Kernaussagen",
+      REDAKTION: "Identifiziert wichtige Abbildungen & Tabellen",
+      FAKTENCHECK: "Validiert Kernaussagen gegen Originaltext",
+      REVIEW: "Senior-Prüfung der Analyse auf Korrektheit"
+    };
+    
+    function updatePhaseInfo() {
+      const phase = document.getElementById('phase').value;
+      document.getElementById('phase-desc').innerText = phaseInfo[phase] || "";
+    }
+    
+    window.onload = function() {
+      updatePhaseInfo();
+    };
+    
+    function generatePrompts() {
+      const phase = document.getElementById('phase').value;
+      const mode = document.querySelector('input[name="mode"]:checked').value;
+      const maxCount = parseInt(document.getElementById('maxCount').value) || null;
+      
+      const useSelection = (mode === 'selection');
+      
+      showStatus('Generiere Prompts...', false);
+      
+      google.script.run
+        .withSuccessHandler(onSuccess)
+        .withFailureHandler(onFailure)
+        .generateBatchPromptsForPhase(phase, useSelection, maxCount);
+    }
+    
+    function showReadiness() {
+      google.script.run.showBatchReadiness();
+    }
+    
+    function onSuccess(result) {
+      if (result.error) {
+        showStatus('Fehler: ' + result.error, false);
+        return;
+      }
+      
+      let msg = `✅ ${result.generated} Prompts generiert für ${result.phase}\n\n`;
+      msg += "Nächster Schritt:\n";
+      msg += "1. Öffne Sheet 'Manuelle Prompts'\n";
+      msg += "2. Kopiere die Prompts zu ChatGPT\n";
+      msg += "3. Füge Antworten in Spalte 'Antwort' ein\n";
+      msg += "4. Menü → Prompts → Phase X Antworten importieren";
+      
+      if (result.errors && result.errors.length > 0) {
+        msg += "\n\n⚠️ Fehler bei " + result.errors.length + " Zeilen:\n";
+        msg += result.errors.slice(0, 3).join("\n");
+      }
+      
+      showStatus(msg, true);
+    }
+    
+    function onFailure(error) {
+      showStatus('Fehler: ' + error.message, false);
+    }
+    
+    function showStatus(message, isSuccess) {
+      const statusDiv = document.getElementById('status');
+      statusDiv.innerText = message;
+      statusDiv.className = isSuccess ? 'success' : 'error';
+      statusDiv.style.display = 'block';
+    }
+  </script>
+</body>
+</html>
